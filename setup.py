@@ -12,13 +12,13 @@ except ImportError:
 
 setup(
     name='sayminimal',
-    version=2.0,
+    version="2.0.2",
     description='A minimalist write-only Twitter client.',
     long_description=long_description,
     url='https://github.com/mduo13/sayminimal',
     author='mDuo13',
     author_email='mduo13@gmail.com',
-    license='MIT',
+    license='GPLv3',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: X11 Applications :: GTK',
