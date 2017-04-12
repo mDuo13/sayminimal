@@ -198,9 +198,9 @@ class TweetWindow:
     def update_bonus_label(self):
         s = ""
         if self.attached_media:
-            s += "Attached: %s" % media_file
+            s += "Attached: %s\n" % self.attached_media
         if self.reply_id:
-            s += " Replying to: %s\n> %s" % (self.reply_id, self.reply_text)
+            s += "Replying to: %s\n> %s" % (self.reply_id, self.reply_text)
         self.bonus_label.set_label(s)
 
     def display_error(self, e):

@@ -12,7 +12,7 @@ except ImportError:
 
 setup(
     name='sayminimal',
-    version="2.0.2",
+    version="2.0.3",
     description='A minimalist write-only Twitter client.',
     long_description=long_description,
     url='https://github.com/mduo13/sayminimal',
