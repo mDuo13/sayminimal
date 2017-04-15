@@ -102,8 +102,14 @@ class MastodonApi(Mastodon):
             )
         if token is None:
             token = self.RequestAuth()
+            self.access_token = token
+            self.conf.Set("mastodon_access_token", token)
 
-        self.current_user = self.account_verify_credentials()
+        try:
+            self.current_user_id = self.conf.Get("current_user_id")
+        except KeyError:
+            self.current_user_id = self.account_verify_credentials()["id"]
+            self.conf.Set("current_user_id", self.current_user_id)
 
 
     def PickInstance(self):
@@ -113,7 +119,7 @@ class MastodonApi(Mastodon):
     def RegisterApp(self, api_base_url):
         print("api_base_url is '%s'" % api_base_url)
         key, secret = Mastodon.create_app(
-            __name__,
+            "SayMinimal",
             scopes=["read", "write"],
             api_base_url=api_base_url
         )
@@ -132,8 +138,9 @@ class MastodonApi(Mastodon):
             pin_field = self.builder.get_object("pin_entry")
             pin = pin_field.get_text()
             dialog.destroy()
+            self.conf.Set("mastodon_auth_code", pin)
             if pin:
-                token = self.log_in(code=pin)
+                token = self.log_in(code=pin, scopes=["read","write"])
                 return token
         Gtk.main_quit()
         exit("Can't connect to Mastodon instance without authorization.")
@@ -180,7 +187,7 @@ class TwitterApi(tweepy.API):
 
     def GetUrlLen(self):
         try:
-            assert time.time() + URL_LEN_CACHE_TIME < int(self.conf.Get("tco_url_len_timestamp"))
+            assert int(time.time()) < int(self.conf.Get("tco_url_len_timestamp")) + URL_LEN_CACHE_TIME
             return int(self.conf.Get("tco_url_len"))
         except (KeyError, AssertionError):
             url_len = self.configuration()["short_url_length"]
@@ -224,8 +231,9 @@ class TwitterApi(tweepy.API):
         exit("Can't connect to Twitter without authorization.")
 
     def CalcStatusLength(self, text):
-        url_len_str = self.api.GetUrlLen()*" "
+        url_len_str = self.GetUrlLen()*" "
         n = len(GRUBER_URL_REGEX.sub(url_len_str, text))
+        return n
 
 
 class StatusWindow:
@@ -262,15 +270,16 @@ class StatusWindow:
 
         #Start
         self.window.show_all()
+        self.text_changed(self.textbox)
         Gtk.main()
 
     def text_changed(self, entry):
         text = entry.get_text()
         lbl = ""
         if self.twitter:
-            lbl += "(%d / 140) " % self.twitter.GetUrlLen(text)
+            lbl += "(%d / 140) " % self.twitter.CalcStatusLength(text)
         if self.mastodon:
-            lbl += "(%d / 500) " % self.mastodon.GetUrlLen(text)
+            lbl += "(%d / 500) " % self.mastodon.CalcStatusLength(text)
 
         self.chars_label.set_text(lbl)
 
@@ -299,7 +308,7 @@ class StatusWindow:
                     self.twitter_reply_id = recent_tweets[0].id
                     self.twitter_reply_text = recent_tweets[0].text
             if self.mastodon:
-                user_id = self.mastodon.current_user["id"]
+                user_id = self.mastodon.current_user_id
                 recent_toots = self.mastodon.account_statuses(user_id, limit=1)
                 if not len(recent_toots):
                     logging.warning("Can't find previous toot to thread to.")
@@ -337,7 +346,14 @@ class StatusWindow:
         if self.attached_media:
             s += "Attached: %s\n" % self.attached_media
         if self.twitter_reply_id:
-            s += "Replying to: %s\n> %s" % (self.twitter_reply_id, self.reply_text)
+            s += "(Twitter) Replying to: %s\n> %s\n\n" % (
+                self.twitter_reply_id,
+                self.twitter_reply_text,)
+        if self.mastodon_reply_id:
+            s += "(Mastodon) Replying to: %s\n> %s\n\n" % (
+                self.mastodon_reply_id,
+                self.mastodon_reply_text,
+            )
         self.bonus_label.set_label(s)
 
     def display_error(self, e):
@@ -366,7 +382,7 @@ class StatusWindow:
 
         self.mastodon.status_post(text,
             in_reply_to_id=self.mastodon_reply_id, # Can be None, & that's OK.
-            media_ids=[media["id"]],
+            media_ids=media_ids,
         )
 
 
