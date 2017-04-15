@@ -3,10 +3,13 @@
 
 import re
 import os
+import time
 import logging
 import pkg_resources
+import urllib.parse
 
 import tweepy
+from mastodon import Mastodon
 import yaml
 import gi
 gi.require_version("Gtk", "3.0")
@@ -22,11 +25,10 @@ DEFAULT_APP_SECRET = "tfzg6wnXwhbUReB8C3idgvNuzVSpIwOQFAZublN6ShpavXez2m"
 
 GRUBER_URL_REGEX = re.compile( r'(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))' )
 
-URL_LEN_STR = 25*" " #t.co automatically shortens URLs to this length.
-#Technically we're supposed to lookup & cache this daily instead of hardcoding it.
+URL_LEN_CACHE_TIME = 24*3600
 
 CONF_FILE = "~/.config/sayminimal/conf.yml"
-GLADE_FILE = "twitters.glade"
+GLADE_FILE = "fusion.glade"
 
 class Conf:
     def __init__(self):
@@ -34,6 +36,7 @@ class Conf:
         try:
             with open(self.conf_file) as f:
                 self.vals = yaml.load(f)
+            self.MigrateTo3()
         except FileNotFoundError:
             logging.warning("Couldn't load conf file, opening a new one.")
             self.vals = {}
@@ -43,52 +46,148 @@ class Conf:
 
     def Set(self, key, val):
         self.vals[key] = val
-        with open(self.conf_file, "w") as f:
-            f.write(yaml.dump(self.vals))
+        self.Save()
 
     def Unset(self, key):
         del self.vals[key]
+        self.Save()
+
+    def Save(self):
         with open(self.conf_file, "w") as f:
             f.write(yaml.dump(self.vals))
 
+    def MigrateTo3(self):
+        if "conf_ver" in self.vals.keys():
+            return
+        v3 = {"conf_ver": 3}
+        for key in ["consumer_key", "consumer_secret", "oauth_key", "oauth_secret"]:
+            if key in self.vals.keys():
+                v3["twitter_"+key] = self.vals[key]
+        self.vals = v3
+        self.Save()
+
+class MastodonApi(Mastodon):
+    def __init__(self, conf, builder):
+        self.conf = conf
+        self.builder = builder
+
+        try:
+            api_base_url = self.conf.Get("mastodon_instance")
+            if api_base_url[-1:] == "/":
+                api_base_url = api_base_url[:-1]
+
+        except KeyError:
+            api_base_url = self.PickInstance()
+
+        try:
+            key = self.conf.Get("mastodon_key")
+            secret = self.conf.Get("mastodon_secret")
+        except KeyError:
+            key, secret = self.RegisterApp(api_base_url)
+
+        try:
+            token = self.conf.Get("mastodon_access_token")
+            Mastodon.__init__(self,
+                client_id=key,
+                client_secret=secret,
+                access_token=token,
+                api_base_url=api_base_url,
+            )
+        except KeyError:
+            token = None
+            Mastodon.__init__(self,
+                client_id=key,
+                client_secret=secret,
+                api_base_url=api_base_url,
+            )
+        if token is None:
+            token = self.RequestAuth()
+
+        self.current_user = self.account_verify_credentials()
 
 
-class AuthedApi(tweepy.API):
+    def PickInstance(self):
+        self.conf.Set("mastodon_instance", 'https://icosahedron.website')
+        #TODO
+
+    def RegisterApp(self, api_base_url):
+        print("api_base_url is '%s'" % api_base_url)
+        key, secret = Mastodon.create_app(
+            __name__,
+            scopes=["read", "write"],
+            api_base_url=api_base_url
+        )
+        self.conf.Set("mastodon_key", key)
+        self.conf.Set("mastodon_secret", secret)
+        return key, secret
+
+    def RequestAuth(self):
+        authurl = self.auth_request_url(scopes=["read","write"])
+        dialog = self.builder.get_object("pin_dialog")
+        urlbutton = self.builder.get_object("pin_auth_url")
+        urlbutton.set_label(authurl)
+        urlbutton.set_uri(authurl)
+        res = dialog.run()
+        if res:
+            pin_field = self.builder.get_object("pin_entry")
+            pin = pin_field.get_text()
+            dialog.destroy()
+            if pin:
+                token = self.log_in(code=pin)
+                return token
+        Gtk.main_quit()
+        exit("Can't connect to Mastodon instance without authorization.")
+
+    def CalcStatusLength(self, text):
+        return len(text)
+
+class TwitterApi(tweepy.API):
     def __init__(self, conf, builder):
         #Get a twitter API
         self.conf = conf
         self.builder = builder
 
         try:
-            consumer_key = self.conf.Get("consumer_key")
-            consumer_secret = self.conf.Get("consumer_secret")
+            consumer_key = self.conf.Get("twitter_consumer_key")
+            consumer_secret = self.conf.Get("twitter_consumer_secret")
         except KeyError:
             consumer_key, consumer_secret = self.GetAppKeys()
-            self.conf.Set("consumer_key", consumer_key)
-            self.conf.Set("consumer_secret", consumer_secret)
+            self.conf.Set("twitter_consumer_key", consumer_key)
+            self.conf.Set("twitter_consumer_secret", consumer_secret)
 
         auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 
         #If we have the user's OAuth key & secret, we're done. Otherwise,
         #  do the OAuth Dance
         try:
-            user_key = self.conf.Get("oauth_key")
-            user_secret = self.conf.Get("oauth_secret")
+            user_key = self.conf.Get("twitter_oauth_key")
+            user_secret = self.conf.Get("twitter_oauth_secret")
             auth.set_access_token(user_key, user_secret)
         except KeyError:
             try:
                 pin = self.GetPIN(auth)
             except tweepy.error.TweepError:
                 logging.warning("Get authorization URL failed; maybe consumer key is bad?")
-                self.conf.Unset("consumer_key")
-                self.conf.Unset("consumer_secret")
+                self.conf.Unset("twitter_consumer_key")
+                self.conf.Unset("twitter_consumer_secret")
                 exit(1)
 
             auth.get_access_token(pin)
-            self.conf.Set("oauth_key", auth.access_token)
-            self.conf.Set("oauth_secret", auth.access_token_secret)
+            self.conf.Set("twitter_oauth_key", auth.access_token)
+            self.conf.Set("twitter_oauth_secret", auth.access_token_secret)
 
         tweepy.API.__init__(self, auth)
+
+    def GetUrlLen(self):
+        try:
+            assert time.time() + URL_LEN_CACHE_TIME < int(self.conf.Get("tco_url_len_timestamp"))
+            return int(self.conf.Get("tco_url_len"))
+        except (KeyError, AssertionError):
+            url_len = self.configuration()["short_url_length"]
+            self.conf.Set("tco_url_len", url_len)
+            self.conf.Set("tco_url_len_timestamp", int(time.time()))
+            return url_len
+
 
     def GetAppKeys(self):
         dialog = self.builder.get_object("consumerkey_dialog")
@@ -124,36 +223,59 @@ class AuthedApi(tweepy.API):
         Gtk.main_quit()
         exit("Can't connect to Twitter without authorization.")
 
+    def CalcStatusLength(self, text):
+        url_len_str = self.api.GetUrlLen()*" "
+        n = len(GRUBER_URL_REGEX.sub(url_len_str, text))
 
-class TweetWindow:
-    def __init__(self, builder):
 
-        self.api = AuthedApi(Conf(), builder)
+class StatusWindow:
+    def __init__(self, builder, conf, twitter=True, mastodon=True):
+
+        if twitter:
+            self.twitter = TwitterApi(conf, builder)
+        else:
+            self.twitter = None
+        if mastodon:
+            self.mastodon = MastodonApi(conf, builder)
+        else:
+            self.mastodon = None
+
         self.attached_media = None
-        self.reply_id = None
 
-        self.window = builder.get_object('tweetwin')
-        self.label = builder.get_object('tweetprompt')
+        self.threaded = False
+        self.twitter_reply_id = None
+        self.twitter_reply_text = ""
+        self.mastodon_reply_id = None
+        self.mastodon_reply_text = ""
+
+        self.window = builder.get_object('status_window')
+        self.label = builder.get_object('prompt_label')
+        self.chars_label = builder.get_object('status_chars')
         self.bonus_label = builder.get_object('bonus_label')
-        self.textbox = builder.get_object('tweetentry')
+        self.textbox = builder.get_object('status_entry')
 
         #Events
         self.window.connect("delete-event", Gtk.main_quit)
         self.window.connect("key-press-event", self.keypress)
         self.textbox.connect("changed", self.text_changed)
-        self.textbox.connect("activate", self.enter_tweet)
+        self.textbox.connect("activate", self.submit_status)
 
         #Start
         self.window.show_all()
         Gtk.main()
 
     def text_changed(self, entry):
-        #n = entry.get_text_length()
         text = entry.get_text()
-        n = len(GRUBER_URL_REGEX.sub(URL_LEN_STR, text))
-        labeltext = self.label.get_text()
-        labeltext = re.sub(r"\(-?[0-9]+\)", "("+str(140-n)+")", labeltext)
-        self.label.set_text(labeltext)
+        lbl = ""
+        if self.twitter:
+            lbl += "(%d / 140) " % self.twitter.GetUrlLen(text)
+        if self.mastodon:
+            lbl += "(%d / 500) " % self.mastodon.GetUrlLen(text)
+
+        self.chars_label.set_text(lbl)
+
+        # labeltext = re.sub(r"\(-?[0-9]+\)", "("+str(140-n)+")", labeltext)
+        #self.label.set_text(labeltext)
 
     def keypress(self, widget, event):
         key_name = Gdk.keyval_name(event.keyval)
@@ -167,16 +289,31 @@ class TweetWindow:
             Gtk.main_quit()
 
     def toggle_threaded(self):
-        if self.reply_id == None:
-            recent_tweet = self.api.user_timeline(count=1)
-            if not len(recent_tweet):
-                logging.warning("Can't find previous tweets to thread to.")
-                return
-            #print(recent_tweet[0])
-            self.reply_id = recent_tweet[0].id
-            self.reply_text = recent_tweet[0].text
+        if not self.threaded:
+            if self.twitter:
+                recent_tweets = self.twitter.user_timeline(count=1)
+                if not len(recent_tweets):
+                    logging.warning("Can't find previous tweets to thread to.")
+                else:
+                    #print(recent_tweet[0])
+                    self.twitter_reply_id = recent_tweets[0].id
+                    self.twitter_reply_text = recent_tweets[0].text
+            if self.mastodon:
+                user_id = self.mastodon.current_user["id"]
+                recent_toots = self.mastodon.account_statuses(user_id, limit=1)
+                if not len(recent_toots):
+                    logging.warning("Can't find previous toot to thread to.")
+                else:
+                    self.mastodon_reply_id = recent_toots[0]["id"]
+                    self.mastodon_reply_text = recent_toots[0]["content"] # FF: maybe convert this from HTML?
+
         else:
-            self.reply_id = None
+            self.threaded = False
+            self.twitter_reply_id = None
+            self.twitter_reply_text = ""
+            self.mastodon_reply_id = None
+            self.mastodon_reply_text = ""
+
         self.update_bonus_label()
 
     def prompt_for_media_file(self):
@@ -199,8 +336,8 @@ class TweetWindow:
         s = ""
         if self.attached_media:
             s += "Attached: %s\n" % self.attached_media
-        if self.reply_id:
-            s += "Replying to: %s\n> %s" % (self.reply_id, self.reply_text)
+        if self.twitter_reply_id:
+            s += "Replying to: %s\n> %s" % (self.twitter_reply_id, self.reply_text)
         self.bonus_label.set_label(s)
 
     def display_error(self, e):
@@ -209,50 +346,70 @@ class TweetWindow:
         dlg.run()
         dlg.destroy()
 
-    def enter_tweet(self, entry):
+    def submit_status(self, entry):
         text = entry.get_text()
-        if text:
-            entry.set_sensitive(False)
+        if not text: return
 
-            if self.attached_media and not self.reply_id:
-                self.label.set_text("Uploading image and message to Twitter...")
-                try:
-                    self.api.update_with_media(self.attached_media, status=text)
-                except Exception as e:
-                    self.display_error(e)
+        entry.set_sensitive(False)
+        if self.twitter:
+            self.submit_tweet(text)
+        if self.mastodon:
+            self.submit_toot(text)
+        Gtk.main_quit()
 
-            elif self.attached_media and self.reply_id:
-                self.label.set_text("Uploading image and reply to Twitter...")
-                try:
-                    self.api.update_with_media(self.attached_media, status=text,
-                        in_reply_to_status_id=self.reply_id)
-                except Exception as e:
-                    self.display_error(e)
+    def submit_toot(self, text):
+        media_ids = None
+        if self.attached_media:
+            self.label.set_text("Uploading image...")
+            media = self.mastodon.media_post(self.attached_media)
+            media_ids = [media["id"]]
 
-            elif self.reply_id:
-                self.label.set_text("Sending reply to Twitter...")
-                try:
-                    self.api.update_status(text, in_reply_to_status_id=self.reply_id)
-                except Exception as e:
-                    self.display_error(e)
+        self.mastodon.status_post(text,
+            in_reply_to_id=self.mastodon_reply_id, # Can be None, & that's OK.
+            media_ids=[media["id"]],
+        )
 
-            else:
-                self.label.set_text("Sending message to Twitter...")
-                try:
-                    self.api.update_status(text)
-                except Exception as e:
-                    self.display_error(e)
 
-            Gtk.main_quit()
+    def submit_tweet(self, text):
+        if self.attached_media and not self.twitter_reply_id:
+            self.label.set_text("Uploading image and message...")
+            try:
+                self.twitter.update_with_media(self.attached_media, status=text)
+            except Exception as e:
+                self.display_error(e)
+
+        elif self.attached_media and self.twitter_reply_id:
+            self.label.set_text("Uploading image and reply...")
+            try:
+                self.twitter.update_with_media(self.attached_media, status=text,
+                    in_reply_to_status_id=self.twitter_reply_id)
+            except Exception as e:
+                self.display_error(e)
+
+        elif self.twitter_reply_id:
+            self.label.set_text("Sending reply...")
+            try:
+                self.twitter.update_status(text, in_reply_to_status_id=self.twitter_reply_id)
+            except Exception as e:
+                self.display_error(e)
+
+        else:
+            self.label.set_text("Sending message...")
+            try:
+                self.twitter.update_status(text)
+            except Exception as e:
+                self.display_error(e)
+
 
 def main():
     #Initialize from glade
+    conf = Conf()
     builder = Gtk.Builder()
-    #builder.add_from_file(GLADE_FILE)
+    # builder.add_from_file(GLADE_FILE)
     builder.add_from_string(
         pkg_resources.resource_string(__name__, GLADE_FILE).decode('utf-8')
     )
-    TweetWindow(builder)
+    StatusWindow(builder, conf=conf)
 
 if __name__ == "__main__":
     main()

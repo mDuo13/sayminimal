@@ -12,8 +12,8 @@ except ImportError:
 
 setup(
     name='sayminimal',
-    version="2.0.3",
-    description='A minimalist write-only Twitter client.',
+    version="3.0.0a1",
+    description='A minimalist write-only Twitter/Mastodon client.',
     long_description=long_description,
     url='https://github.com/mduo13/sayminimal',
     author='mDuo13',
@@ -31,7 +31,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Topic :: Communications',
     ],
-    keywords='twitter',
+    keywords='twitter mastodon social microblogging',
     packages=[
         'sayminimal',
     ],
@@ -45,6 +45,6 @@ setup(
         'tweepy',
     ],
     package_data={
-        '': ["twitters.glade"],
+        '': ["fusion.glade"],
     }
 )
