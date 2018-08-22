@@ -12,7 +12,7 @@ except ImportError:
 
 setup(
     name='sayminimal',
-    version="3.0.0a2",
+    version="3.0.0",
     description='A minimalist write-only Twitter/Mastodon client.',
     long_description=long_description,
     url='https://github.com/mduo13/sayminimal',
@@ -29,6 +29,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Communications',
     ],
     keywords='twitter mastodon social microblogging',
@@ -43,6 +44,7 @@ setup(
     install_requires=[
         'PyYAML',
         'tweepy',
+        'Mastodon.py',
     ],
     package_data={
         '': ["fusion.glade"],

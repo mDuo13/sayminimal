@@ -113,8 +113,19 @@ class MastodonApi(Mastodon):
 
 
     def PickInstance(self):
-        self.conf.Set("mastodon_instance", 'https://icosahedron.website')
-        #TODO
+        dialog = self.builder.get_object("instance_dialog")
+        instance_entry = self.builder.get_object("instance_entry")
+        res = dialog.run()
+        if res:
+            mastodon_instance = _entry.get_text()
+            if "://" not in mastodon_instance:
+                # assume we need to add an https:// to it
+                mastodon_instance = "https://" + mastodon_instance
+
+            self.conf.Set("mastodon_instance", mastodon_instance)
+            return mastodon_instance
+
+        exit("No mastodon instance specified")
 
     def RegisterApp(self, api_base_url):
         print("api_base_url is '%s'" % api_base_url)
@@ -243,10 +254,13 @@ class StatusWindow:
             self.twitter = TwitterApi(conf, builder)
         else:
             self.twitter = None
+        print("Done initializing TwitterApi")
+
         if mastodon:
             self.mastodon = MastodonApi(conf, builder)
         else:
             self.mastodon = None
+        print("Done initializing MastodonApi")
 
         self.attached_media = None
 
@@ -268,6 +282,7 @@ class StatusWindow:
         self.textbox.connect("changed", self.text_changed)
         self.textbox.connect("activate", self.submit_status)
 
+        print("About to show_all()")
         #Start
         self.window.show_all()
         self.text_changed(self.textbox)
@@ -277,7 +292,7 @@ class StatusWindow:
         text = entry.get_text()
         lbl = ""
         if self.twitter:
-            lbl += "(%d / 140) " % self.twitter.CalcStatusLength(text)
+            lbl += "(%d / 280) " % self.twitter.CalcStatusLength(text)
         if self.mastodon:
             lbl += "(%d / 500) " % self.mastodon.CalcStatusLength(text)
 
@@ -418,13 +433,14 @@ class StatusWindow:
 
 
 def main():
-    #Initialize from glade
     conf = Conf()
     builder = Gtk.Builder()
-    # builder.add_from_file(GLADE_FILE)
-    builder.add_from_string(
-        pkg_resources.resource_string(__name__, GLADE_FILE).decode('utf-8')
-    )
+    if __name__ == "__main__": # Testing
+        builder.add_from_file(GLADE_FILE)
+    else: # Installed with pip, probably
+        builder.add_from_string(
+            pkg_resources.resource_string(__name__, GLADE_FILE).decode('utf-8')
+        )
     StatusWindow(builder, conf=conf)
 
 if __name__ == "__main__":
