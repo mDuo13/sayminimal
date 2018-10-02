@@ -1,6 +1,6 @@
 # SayMinimal
 
-SayMinimal is a simple, write-only¹ Twitter client. The point of SayMinimal is to map it to a keypress so you can press a button, comment on something, and then go back to what you were doing before.
+SayMinimal is a simple, write-only¹ client to Twitter (or [Mastodon](https://joinmastodon.org/), or both). The point of SayMinimal is to map it to a keypress so you can press a button, comment on something, and then go back to what you were doing before.
 
 ¹Technically SayMinimal also reads your most recent tweet when you ask it to thread tweets together.
 
@@ -31,4 +31,4 @@ SayMinimal originated as a script I shared on the [Arch Linux forums in May of 2
 
 ## What about GNU Social / Mastodon?
 
-Maybe someday.
+SayMinimal can also post toots to Mastodon. If you have both a Twitter and Mastodon account it can post messages to both. (If the message is too long for one but not the other, it'll send one while the other returns an error. The account configuration stuff is pretty rough and there's not a good way to handle things like mentioning users in one but not the other, but that's life.
