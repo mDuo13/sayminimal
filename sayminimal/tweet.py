@@ -35,7 +35,7 @@ class Conf:
         self.conf_file = os.path.expanduser(CONF_FILE)
         try:
             with open(self.conf_file) as f:
-                self.vals = yaml.load(f)
+                self.vals = yaml.load(f, Loader=yaml.SafeLoader)
             self.MigrateTo3()
         except FileNotFoundError:
             logging.warning("Couldn't load conf file, opening a new one.")
@@ -197,14 +197,17 @@ class TwitterApi(tweepy.API):
         tweepy.API.__init__(self, auth)
 
     def GetUrlLen(self):
-        try:
-            assert int(time.time()) < int(self.conf.Get("tco_url_len_timestamp")) + URL_LEN_CACHE_TIME
-            return int(self.conf.Get("tco_url_len"))
-        except (KeyError, AssertionError):
-            url_len = self.configuration()["short_url_length"]
-            self.conf.Set("tco_url_len", url_len)
-            self.conf.Set("tco_url_len_timestamp", int(time.time()))
-            return url_len
+        ## Work around tweepy.error.TweepError: Failed to parse JSON payload
+        ## for configuration endpoint.
+        return 23
+        # try:
+        #     assert int(time.time()) < int(self.conf.Get("tco_url_len_timestamp")) + URL_LEN_CACHE_TIME
+        #     return int(self.conf.Get("tco_url_len"))
+        # except (KeyError, AssertionError):
+        #     url_len = self.configuration()["short_url_length"]
+        #     self.conf.Set("tco_url_len", url_len)
+        #     self.conf.Set("tco_url_len_timestamp", int(time.time()))
+        #     return url_len
 
 
     def GetAppKeys(self):
