@@ -7,8 +7,8 @@ long_description = open('README.md').read()
 
 setup(
     name='sayminimal',
-    version="3.0.2",
-    description='A minimalist write-only Twitter/Mastodon client.',
+    version="4.0.0",
+    description='A minimalist write-only Mastodon client.',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/mduo13/sayminimal',
@@ -28,21 +28,20 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Topic :: Communications',
     ],
-    keywords='twitter mastodon social microblogging',
+    keywords='mastodon social microblogging',
     packages=[
         'sayminimal',
     ],
     entry_points={
         'console_scripts': [
-            'sayminimal = sayminimal.tweet:main',
+            'sayminimal = sayminimal.toot:main',
         ],
     },
     install_requires=[
         'PyYAML',
-        'tweepy',
-        'Mastodon.py',
+        'Mastodon.py'
     ],
     package_data={
-        '': ["fusion.glade"],
+        '': ["v4.glade"],
     }
 )

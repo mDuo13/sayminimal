@@ -1,115 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.40.0 -->
 <interface>
-  <requires lib="gtk+" version="3.0"/>
-  <object class="GtkDialog" id="consumerkey_dialog">
-    <property name="width_request">200</property>
-    <property name="can_focus">False</property>
-    <property name="type_hint">dialog</property>
+  <requires lib="gtk+" version="3.12"/>
+  <object class="GtkTextBuffer"/>
+  <object class="GtkDialog" id="img_dialog">
+    <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Edit media</property>
+    <property name="type-hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkBox">
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
+            <property name="can-focus">False</property>
+            <property name="layout-style">end</property>
             <child>
-              <object class="GtkButton" id="register_app_button">
-                <property name="label" translatable="yes">Register an App</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="skip_app_button">
-                <property name="label" translatable="yes">Use Shared Key</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">10</property>
-            <property name="margin_right">10</property>
-            <property name="margin_top">10</property>
-            <property name="margin_bottom">10</property>
-            <property name="label" translatable="yes">SayMinimal recommends that you register your own Twitter app credentials, since the default credentials are published along with the source. If you use your own credentials, your SayMinimal instance is less likely to get blocked by Twitter.</property>
-            <property name="wrap">True</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLinkButton" id="twittersitebutton">
-            <property name="label" translatable="yes">Open apps.twitter.com</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="relief">none</property>
-            <property name="uri">https://apps.twitter.com</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="1">register_app_button</action-widget>
-      <action-widget response="0">skip_app_button</action-widget>
-    </action-widgets>
-    <child>
-      <placeholder/>
-    </child>
-  </object>
-  <object class="GtkDialog" id="consumerkey_entry_dialog">
-    <property name="width_request">200</property>
-    <property name="can_focus">False</property>
-    <property name="type_hint">dialog</property>
-    <child internal-child="vbox">
-      <object class="GtkBox">
-        <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="appkey_cancel">
+              <object class="GtkButton" id="img_cancel">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -118,17 +31,29 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="appkey_ok">
-                <property name="label">gtk-ok</property>
+              <object class="GtkButton" id="img_remove">
+                <property name="label" translatable="yes">Remove</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="img_attach">
+                <property name="label" translatable="yes">Attach</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
@@ -139,121 +64,98 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel">
+          <object class="GtkBox">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Input the consumer key and secret you got from apps.twitter.com</property>
-            <property name="wrap">True</property>
+            <property name="can-focus">False</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkFileChooserButton" id="img_chooser">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="title" translatable="yes">Attach image...</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkImage" id="img_preview">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="hexpand">False</property>
+                <property name="vexpand">False</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">Description for the visually impaired:</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkTextView" id="alt_text">
+                <property name="name">img_desc</property>
+                <property name="height-request">160</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+                <property name="wrap-mode">word</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="padding">10</property>
             <property name="position">1</property>
           </packing>
         </child>
-        <child>
-          <object class="GtkBox">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Consumer Key</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">10</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkEntry" id="consumer_key_entry">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hexpand">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkBox">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Consumer Secret</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">10</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkEntry" id="consumer_secret_entry">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hexpand">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">appkey_cancel</action-widget>
-      <action-widget response="1">appkey_ok</action-widget>
+      <action-widget response="0">img_cancel</action-widget>
+      <action-widget response="-1">img_remove</action-widget>
+      <action-widget response="1">img_attach</action-widget>
     </action-widgets>
-    <child>
-      <placeholder/>
-    </child>
   </object>
   <object class="GtkDialog" id="instance_dialog">
-    <property name="width_request">200</property>
-    <property name="can_focus">False</property>
-    <property name="type_hint">dialog</property>
+    <property name="width-request">200</property>
+    <property name="can-focus">False</property>
+    <property name="type-hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkBox">
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
+            <property name="can-focus">False</property>
+            <property name="layout-style">end</property>
             <child>
               <object class="GtkButton" id="pin_cancel1">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -265,9 +167,9 @@
               <object class="GtkButton" id="pin_ok1">
                 <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -285,7 +187,7 @@
         <child>
           <object class="GtkLabel">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="label" translatable="yes">Enter the URL of your Mastodon instance (for example, mastodon.social):</property>
             <property name="wrap">True</property>
           </object>
@@ -298,8 +200,8 @@
         <child>
           <object class="GtkEntry" id="instance_entry">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="activates_default">True</property>
+            <property name="can-focus">True</property>
+            <property name="activates-default">True</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -313,30 +215,27 @@
       <action-widget response="0">pin_cancel1</action-widget>
       <action-widget response="1">pin_ok1</action-widget>
     </action-widgets>
-    <child>
-      <placeholder/>
-    </child>
   </object>
   <object class="GtkDialog" id="pin_dialog">
-    <property name="width_request">200</property>
-    <property name="can_focus">False</property>
-    <property name="type_hint">dialog</property>
+    <property name="width-request">200</property>
+    <property name="can-focus">False</property>
+    <property name="type-hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkBox">
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
+            <property name="can-focus">False</property>
+            <property name="layout-style">end</property>
             <child>
               <object class="GtkButton" id="pin_cancel">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -348,9 +247,9 @@
               <object class="GtkButton" id="pin_ok">
                 <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="use-stock">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -368,7 +267,7 @@
         <child>
           <object class="GtkLabel">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="label" translatable="yes">Enter Auth Code</property>
           </object>
           <packing>
@@ -380,7 +279,7 @@
         <child>
           <object class="GtkLabel">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="label" translatable="yes">You must authorize the app to access your account. Please visit the following URL to get an authorization code and enter it below.</property>
             <property name="wrap">True</property>
           </object>
@@ -394,8 +293,8 @@
           <object class="GtkLinkButton" id="pin_auth_url">
             <property name="label" translatable="yes">(URL)</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
             <property name="relief">none</property>
           </object>
           <packing>
@@ -407,8 +306,8 @@
         <child>
           <object class="GtkEntry" id="pin_entry">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="activates_default">True</property>
+            <property name="can-focus">True</property>
+            <property name="activates-default">True</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -422,36 +321,33 @@
       <action-widget response="0">pin_cancel</action-widget>
       <action-widget response="1">pin_ok</action-widget>
     </action-widgets>
-    <child>
-      <placeholder/>
-    </child>
   </object>
   <object class="GtkWindow" id="status_window">
-    <property name="width_request">600</property>
-    <property name="height_request">40</property>
+    <property name="width-request">600</property>
+    <property name="height-request">40</property>
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="title" translatable="yes">Enter a tweet</property>
-    <property name="window_position">center</property>
+    <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Enter your status</property>
+    <property name="window-position">center</property>
     <property name="decorated">False</property>
-    <property name="has_resize_grip">True</property>
+    <property name="has-resize-grip">True</property>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkLabel" id="prompt_label">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="hexpand">False</property>
                 <property name="vexpand">False</property>
                 <property name="label" translatable="yes">Enter your status:</property>
-                <property name="single_line_mode">True</property>
+                <property name="single-line-mode">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -462,11 +358,11 @@
             <child>
               <object class="GtkLabel" id="status_chars">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="hexpand">False</property>
                 <property name="vexpand">False</property>
                 <property name="label" translatable="yes">(0/?)</property>
-                <property name="single_line_mode">True</property>
+                <property name="single-line-mode">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -485,9 +381,9 @@
         <child>
           <object class="GtkEntry" id="status_entry">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="width_chars">140</property>
-            <property name="max_width_chars">140</property>
+            <property name="can-focus">True</property>
+            <property name="width-chars">140</property>
+            <property name="max-width-chars">140</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -496,9 +392,56 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="bonus_label">
+          <object class="GtkBox" id="actionbar">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkButton" id="img_button">
+                <property name="label" translatable="yes">Add Image</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="threaded">
+                <property name="label" translatable="yes">Continue thread</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="draw-indicator">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="cw_toggle">
+                <property name="label" translatable="yes">CW</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="draw-indicator">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -506,10 +449,36 @@
             <property name="position">2</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkEntry" id="cw_entry">
+            <property name="height-request">0</property>
+            <property name="can-focus">True</property>
+            <property name="no-show-all">True</property>
+            <property name="width-chars">140</property>
+            <property name="max-width-chars">140</property>
+            <property name="placeholder-text" translatable="yes">Content warning</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="thread_label">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="wrap">True</property>
+            <property name="ellipsize">end</property>
+            <property name="max-width-chars">200</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">4</property>
+          </packing>
+        </child>
       </object>
-    </child>
-    <child type="titlebar">
-      <placeholder/>
     </child>
   </object>
 </interface>

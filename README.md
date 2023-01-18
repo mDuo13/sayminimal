@@ -1,8 +1,8 @@
 # SayMinimal
 
-SayMinimal is a simple, write-only¹ client to Twitter (or [Mastodon](https://joinmastodon.org/), or both). The point of SayMinimal is to map it to a keypress so you can press a button, comment on something, and then go back to what you were doing before.
+SayMinimal is a simple, write-only¹ client to [Mastodon](https://joinmastodon.org/). The point of SayMinimal is to map it to a keypress so you can press a button, comment on something, and then go back to what you were doing before.
 
-¹Technically SayMinimal also reads your most recent tweet when you ask it to thread tweets together.
+¹Technically SayMinimal also reads your most recent status when you ask it to thread toots together.
 
 ## Setup
 
@@ -12,7 +12,7 @@ If you've got those taken care of, you can install SayMinimal with `pip`:
 
     sudo pip3 install sayminimal
 
-After that, the GUI should walk you through OAuth setup. Basically, you can choose to use the default Consumer Key pair that's hard-coded into the app, or you can provide your own. I recommend you provide your own because random people can find and abuse consumer keys that are published along with the source. You also need to authorize the app to read and write to your Twitter account (verifying it with a PIN).
+After that, the GUI should walk you through OAuth setup. Basically, you can choose to use the default Consumer Key pair that's hard-coded into the app, or you can provide your own. I recommend you provide your own because random people can find and abuse consumer keys that are published along with the source.
 
 ## Config
 
@@ -20,15 +20,14 @@ SayMinimal saves its configuration in `~/.config/sayminimal/conf.yml`, which you
 
 ## Keyboard Shortcuts
 
-- **Enter** - Send the current tweet.
-- **Shift-Enter** - Add a newline to your tweet. (It displays funky in the input text box but works)
-- **Alt+I** - Browse for an image to attach to the current tweet. SayMinimal currently only supports 1 media file per tweet.
-- **Alt+T** - Thread this tweet as a reply to your most recent previous tweet. Press again to toggle off.
+- **Enter** - Send the current status.
+- **Esc** - Exit without sending.
+- **Shift-Enter** - Add a newline to your status. (It displays funky in the input text box but works)
+- **Alt-I** - Browse for an image to attach to the current status. SayMinimal currently only supports 1 media file per toot.
+- **Alt-T** - Thread this status as a reply to your most recent previous status. Press again to toggle off.
+- **Alt-C** - Toggle content warning on post.
 
-## Sentimental Historical Stuff
 
-SayMinimal originated as a script I shared on the [Arch Linux forums in May of 2010](https://bbs.archlinux.org/viewtopic.php?id=96465). Man, I was _really_ a novice back then. This version of the program is much redone to take advantage of modern libraries and Twitter features.
+## What happened to Twitter?
 
-## What about GNU Social / Mastodon?
-
-SayMinimal can also post toots to Mastodon. If you have both a Twitter and Mastodon account it can post messages to both. (If the message is too long for one but not the other, it'll send one while the other returns an error. The account configuration stuff is pretty rough and there's not a good way to handle things like mentioning users in one but not the other, but that's life.
+SayMinimal originated as a Twitter client before adding Mastodon support. For various reasons, most notably Twitter intentionally breaking the API, SayMinimal v4.0 no longer works with Twitter. Any future development (no promises) will be focused on better Mastodon support.
