@@ -5,16 +5,16 @@ import re
 import os
 import time
 import logging
-import pkg_resources
 import urllib.parse
 import html
+from importlib.resources import read_text
 
 from mastodon import Mastodon
 import yaml
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
-from gi.repository import Gtk, Gdk, GdkPixbuf
+from gi.repository import Gtk, Gdk, GdkPixbuf, Gio
 
 
 # Currently unused, but could use again for purposes of calculating adjusted toot lengths after link shortening:
@@ -123,7 +123,7 @@ class MastodonApi(Mastodon):
     def PickInstance(self):
         dialog = self.builder.get_object("instance_dialog")
         instance_entry = self.builder.get_object("instance_entry")
-        
+
         res = dialog.run()
         if res:
             mastodon_instance = instance_entry.get_text()
@@ -170,22 +170,33 @@ class MastodonApi(Mastodon):
         # In practice Mastodon only counts URLs as something like 23 chars each
         # rather than their full length, but this is advisory anyway so /shrug
         return len(text)
-    
+
     def GetMaxTootLen(self):
         if self.maxtoot == None: # Don't have it cached, look it up (kinda slow)
-            try:
-                # Works on current Mastodon, not older instances or non-Mastodon Fediverse stuff
-                self.maxtoot = self.instance().configuration.statuses.max_characters
-            except:
-                self.maxtoot = "???"
+            self.maxtoot = "???" # Set a temp value and don't look it up again
+            logging.debug("Looking up max toot length...")
+            Gio.Task.new(callback=self.GotMaxToot).run_in_thread(self.LookupMaxToot)
         return self.maxtoot
+
+    def LookupMaxToot(self, task, _so, _td, _cncl):
+        """
+        Async task to lookup max toot length from the Mastodon instance (slow)
+        """
+        maxtoot = self.instance().configuration.statuses.max_characters
+        task.return_value(maxtoot)
+
+    def GotMaxToot(self, _so, result_task):
+        _done, maxtoot = result_task.propagate_value()
+        logging.debug(f"Got max toot length of {maxtoot}")
+        self.maxtoot = maxtoot
+
 
 # https://stackoverflow.com/a/58541701/17380954
 def get_textview_contents(textview):
     """Return the contents of a Gtk.TextView widget as a string"""
     buffer = textview.get_buffer()
-    startIter, endIter = buffer.get_bounds()    
-    text = buffer.get_text(startIter, endIter, False) 
+    startIter, endIter = buffer.get_bounds()
+    text = buffer.get_text(startIter, endIter, False)
     return text
 
 class StatusWindow:
@@ -212,7 +223,10 @@ class StatusWindow:
         self.img_chooser = builder.get_object('img_chooser')
         self.img_preview = builder.get_object('img_preview')
         self.reset_img_preview()
-        self.img_chooser.set_preview_widget(self.img_preview)
+        self.img_dialog_preview = Gtk.Image()
+        self.img_dialog_preview.show()
+        self.img_chooser.set_preview_widget(self.img_dialog_preview)
+
         self.alt_text = builder.get_object('alt_text')
 
         #Events
@@ -223,6 +237,7 @@ class StatusWindow:
         self.thread_toggle.connect("toggled", self.toggle_threaded)
         self.img_button.connect("clicked", self.open_image_dialog)
         self.img_chooser.connect("file-set", self.update_img_preview)
+        self.img_chooser.connect("update-preview", self.update_dialog_preview)
 
         self.cw_toggle.connect("toggled", self.toggle_cw)
 
@@ -254,7 +269,7 @@ class StatusWindow:
             self.toggle_cw()
         elif event.keyval == Gdk.KEY_Escape:
             Gtk.main_quit()
-    
+
     def toggle_cw(self, widget=None):
         cw_on = self.cw_toggle.get_active()
         if widget == None:
@@ -325,8 +340,42 @@ class StatusWindow:
             else:
                 self.img_chooser.unselect_all()
                 self.reset_img_preview()
-    
+
+    def scale_pixbuf(self, pixbuf, size_box):
+        box_x, box_y = size_box
+        box_ratio = box_x / box_y
+        x = pixbuf.get_width()
+        y = pixbuf.get_height()
+        pic_ratio = x / y
+        if pic_ratio >= box_ratio:
+            # Pic is wider than box
+            target_x = box_x
+            target_y = int(round(box_x / pic_ratio))
+        else:
+            target_y = box_y
+            target_x = int(round(box_y * pic_ratio))
+        return pixbuf.scale_simple(target_x, target_y, GdkPixbuf.InterpType.BILINEAR)
+
+    def update_dialog_preview(self, chooser):
+        """
+        Update the image preview in the file-chooser dialog itself
+        """
+        img_fname = chooser.get_preview_filename()
+        if img_fname and not Gtk.FileChooser.get_select_multiple(chooser):
+            try:
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_fname)
+                scaled = self.scale_pixbuf(pixbuf, (200,640))
+                self.img_dialog_preview.set_from_pixbuf(scaled)
+                chooser.set_preview_widget_active(True)
+            except Exception:
+                chooser.set_preview_widget_active(False)
+        else:
+            chooser.set_preview_widget_active(False)
+
     def update_img_preview(self, widget=None):
+        """
+        Update the image preview in the image attachment dialog
+        """
         img_fname = self.img_chooser.get_filename()
         try:
             pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_fname)
@@ -334,7 +383,8 @@ class StatusWindow:
             print("Failed to preview image!")
             self.reset_img_preview()
         else:
-            scaled = pixbuf.scale_simple(640, 480, GdkPixbuf.InterpType.BILINEAR)
+            # scaled = pixbuf.scale_simple(640, 480, GdkPixbuf.InterpType.BILINEAR)
+            scaled = self.scale_pixbuf(pixbuf, (640,480))
             self.img_preview.set_from_pixbuf(scaled)
 
     def reset_img_preview(self):
@@ -377,7 +427,7 @@ def main():
         builder.add_from_file(GLADE_FILE)
     else: # Installed with pip, probably
         builder.add_from_string(
-            pkg_resources.resource_string(__name__, GLADE_FILE).decode('utf-8')
+            read_text(__name__, GLADE_FILE, encoding='utf-8')
         )
     StatusWindow(builder, conf=conf)
 

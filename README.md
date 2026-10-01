@@ -10,7 +10,7 @@ SayMinimal requires Python 3, Gtk+ 3, and [PyGObject](https://pygobject.readthed
 
 If you've got those taken care of, you can install SayMinimal with `pip`:
 
-    sudo pip3 install sayminimal
+    pip install sayminimal
 
 After that, the GUI should walk you through OAuth setup. Basically, you can choose to use the default Consumer Key pair that's hard-coded into the app, or you can provide your own. I recommend you provide your own because random people can find and abuse consumer keys that are published along with the source.
 
